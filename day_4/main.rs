@@ -1,8 +1,10 @@
 mod input;
 
 fn main() {
+  println!("Part 1");
   part1();
-  // part2();
+  println!("Part 2");
+  part2();
 }
 
 fn part1(){
@@ -13,10 +15,49 @@ fn part1(){
     let winner = find_winner(&boards);
 
     if winner != None {
-      println!("winner!\n{:?}", boards[winner.unwrap()]);
       println!("value: {}", boards[winner.unwrap()].unmarked_number() * a_move as i32);
       break;
     }
+  }
+}
+
+fn part2(){
+  let mut boards = input::boards().iter().map(|b| Board::new(b.clone())).collect::<Vec<Board>>();
+  let mut winners = Vec::new();
+
+  struct Winner {
+    board: Board,
+    winning_value: i32
+  }
+
+  impl PartialEq for Winner {
+    fn eq(&self, other: &Self) -> bool {
+      self.board.board == other.board.board &&
+      self.board.state == other.board.state &&
+      self.winning_value == other.winning_value
+    }
+  }
+
+  for a_move in input::moves() {
+    send_move_to_boards(&mut boards, a_move);
+    let mut winner = find_winner(&boards);
+
+    while winner != None {
+      winners.push(
+        Winner {
+          board: boards[winner.unwrap()].clone(),
+          winning_value: boards[winner.unwrap()].unmarked_number() * a_move as i32
+        }
+      );
+      
+      boards.remove(winner.unwrap());
+
+      winner = find_winner(&boards);
+    }
+  }
+
+  if winners.last() != None {
+    println!("value: {}", winners.last().unwrap().winning_value);
   }
 }
 
@@ -75,6 +116,13 @@ impl Board {
     }
 
     unmarked_numbers
+  }
+
+  fn clone(&self) -> Self {
+    Board {
+      board: self.board.clone(),
+      state: self.state.clone()
+    }
   }
 }
 
